@@ -9,6 +9,54 @@ from services.logger import OperationLogger, get_logger
 logger = get_logger("research_agent")
 
 
+def _format_existing_catalog(channel: str = None) -> tuple[list[dict], str]:
+    """
+    Pull every topic already in the channel's sheet and render a compact
+    text block. Returns (raw_list, formatted_block) so the brief can both
+    expose the data and embed it in the prompt as a do-not-repeat guardrail.
+    """
+    videos = sheets_service.list_videos(limit=1000, channel=channel)
+    catalog = [
+        {
+            "topic": v.get("topic", ""),
+            "category": v.get("category", ""),
+            "status": v.get("status", ""),
+        }
+        for v in videos
+        if v.get("topic")
+    ]
+
+    if not catalog:
+        return [], "(no existing videos in the sheet yet)"
+
+    lines = [f"- {c['topic']}  [{c['category']} | {c['status']}]" for c in catalog]
+    return catalog, "\n".join(lines)
+
+
+def _append_dedup_guardrail(research_prompt: str, catalog_block: str) -> str:
+    """Append the existing-catalog and a final cross-check rule to the prompt."""
+    return f"""{research_prompt}
+
+---
+
+## EXISTING CHANNEL CONTENT — ALREADY PUBLISHED OR IN THE PIPELINE
+These topics are ALREADY done or planned for this channel. Treat every one of
+them — and any close variation — as SATURATED for this channel. Do NOT propose
+them again.
+
+{catalog_block}
+
+## FINAL STEP (MANDATORY) — DEDUPLICATION CHECK
+Before you output your final answer, review EVERY niche and example title you
+are about to suggest against the EXISTING CHANNEL CONTENT list above.
+- If an idea matches, or is a close variation of, anything we have already
+  done, REMOVE it and replace it with a genuinely new one.
+- End your response with a short "✅ Dedup check" section confirming that none
+  of your final suggestions overlap with content we have already produced, and
+  briefly note any ideas you dropped because they were too close to existing ones.
+"""
+
+
 def build_research_brief(topic: str, num_web: int = 8, num_news: int = 5, num_reddit: int = 5, channel: str = None) -> dict:
     """
     Gather raw research data for a topic.
@@ -31,15 +79,19 @@ def build_research_brief(topic: str, num_web: int = 8, num_news: int = 5, num_re
                 fetched_pages.append(page)
 
         research_prompt = prompt_loader.load_prompt("research", channel=channel)
+        existing_catalog, catalog_block = _format_existing_catalog(channel=channel)
+        research_prompt = _append_dedup_guardrail(research_prompt, catalog_block)
 
         op.set_metadata("web_results", len(web_results))
         op.set_metadata("news_results", len(news_results))
         op.set_metadata("reddit_results", len(reddit_results))
+        op.set_metadata("existing_catalog", len(existing_catalog))
 
         return {
             "topic": topic,
             "channel": channel,
             "duplicate_check": duplicates,
+            "existing_catalog": existing_catalog,
             "web_results": web_results,
             "news_results": news_results,
             "reddit_results": reddit_results,
