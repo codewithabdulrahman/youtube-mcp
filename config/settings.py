@@ -11,15 +11,6 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REFRESH_TOKEN = os.getenv("GOOGLE_REFRESH_TOKEN", "")
 
-# Google Workspace
-GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID", "")
-GOOGLE_DRIVE_FOLDER = os.getenv("GOOGLE_DRIVE_FOLDER", "")
-
-# Prompt paths
-RESEARCH_PROMPTS = os.getenv("RESEARCH_PROMPTS", "prompts/research.md")
-SCRIPT_PROMPTS = os.getenv("SCRIPT_PROMPTS", "prompts/script.md")
-VISUAL_PROMPTS = os.getenv("VISUAL_PROMPTS", "prompts/visuals.md")
-
 # Search APIs
 BRAVE_SEARCH_API_KEY = os.getenv("BRAVE_SEARCH_API_KEY", "")
 REDDIT_CLIENT_ID = os.getenv("REDDIT_CLIENT_ID", "")
