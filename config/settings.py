@@ -52,12 +52,20 @@ SHEET_COLUMNS = {
     "video_url": 13,
     "notes": 14,
     "views": 15,
+    # YouTube metrics — synced via sync_youtube_stats
+    "likes": 16,
+    "comments": 17,
+    "watch_time_mins": 18,
+    "ctr": 19,
+    "avg_view_duration_secs": 20,
+    "impressions": 21,
 }
 
 SHEET_HEADERS = [
     "ID", "Topic", "Category", "Status", "Priority",
     "Research Score", "Research Doc", "Script Doc", "Thumbnail",
-    "Publish Date", "Created At", "Updated At", "Video URL", "Notes", "Views"
+    "Publish Date", "Created At", "Updated At", "Video URL", "Notes", "Views",
+    "Likes", "Comments", "Watch Time (mins)", "CTR (%)", "Avg View Duration (secs)", "Impressions",
 ]
 
 VALID_STATUSES = [
@@ -69,4 +77,7 @@ GOOGLE_SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/documents",
     "https://www.googleapis.com/auth/drive",
+    # Temporarily disabled — requires re-auth to mint a refresh token with these scopes.
+    # "https://www.googleapis.com/auth/youtube.readonly",
+    # "https://www.googleapis.com/auth/yt-analytics.readonly",
 ]

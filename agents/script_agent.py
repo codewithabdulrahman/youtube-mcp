@@ -38,15 +38,32 @@ def build_script_context(row: int = None, video_id: str = None, channel: str = N
 
 
 def save_script_doc(topic: str, content: str, row: int, channel: str = None) -> dict:
-    """Save a completed script to Google Drive and update the sheet."""
+    """Save a completed script to Google Drive and update the sheet.
+
+    If the video row already has a script_doc URL, the existing document is
+    updated in-place instead of creating a new one.
+    """
     op = OperationLogger(f"save_script:{topic}", "script_agent")
     try:
-        folder_id = drive_service.get_folder_id("scripts", channel=channel)
-        doc = docs_service.create_doc(
-            title=f"Script: {topic}",
-            content=content,
-            folder_id=folder_id,
-        )
+        video = sheets_service.get_video(row=row, channel=channel)
+        existing_url = (video or {}).get("script_doc", "")
+        existing_doc_id = _extract_doc_id(existing_url) if existing_url else None
+
+        if existing_doc_id:
+            docs_service.update_doc(existing_doc_id, content)
+            doc = {
+                "id": existing_doc_id,
+                "title": f"Script: {topic}",
+                "url": existing_url,
+            }
+        else:
+            folder_id = drive_service.get_folder_id("scripts", channel=channel)
+            doc = docs_service.create_doc(
+                title=f"Script: {topic}",
+                content=content,
+                folder_id=folder_id,
+            )
+
         op.add_document(doc["id"], doc["title"])
 
         sheets_service.update_video(

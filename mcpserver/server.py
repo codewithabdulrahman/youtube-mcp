@@ -438,6 +438,30 @@ async def list_tools() -> list[types.Tool]:
                 "properties": {**_CHANNEL_PARAM},
             },
         ),
+        types.Tool(
+            name="sync_youtube_stats",
+            description=(
+                "Fetch live YouTube metrics (views, likes, comments, watch time, CTR, impressions, "
+                "avg view duration) for all Published videos and write them to the sheet. "
+                "Requires YouTube OAuth scopes — re-run auth if this fails."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {**_CHANNEL_PARAM},
+            },
+        ),
+        types.Tool(
+            name="get_performance_insights",
+            description=(
+                "Analyze synced YouTube metrics to surface per-category performance, top/bottom "
+                "performers by CTR, and weak content categories. Run sync_youtube_stats first to "
+                "ensure data is fresh."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {**_CHANNEL_PARAM},
+            },
+        ),
     ]
 
 
@@ -641,6 +665,12 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
         if name == "get_series_candidates":
             return _ok(analytics_agent.get_series_candidates(channel=ch))
+
+        if name == "sync_youtube_stats":
+            return _ok(analytics_agent.sync_all_published(channel=ch))
+
+        if name == "get_performance_insights":
+            return _ok(analytics_agent.get_performance_insights(channel=ch))
 
         return _err(f"Unknown tool: {name}")
 

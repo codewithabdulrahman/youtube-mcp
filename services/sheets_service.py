@@ -95,6 +95,12 @@ def _row_to_dict(row: list, row_number: int) -> dict:
         "video_url": safe_get(SHEET_COLUMNS["video_url"]),
         "notes": safe_get(SHEET_COLUMNS["notes"]),
         "views": safe_get(SHEET_COLUMNS["views"]),
+        "likes": safe_get(SHEET_COLUMNS["likes"]),
+        "comments": safe_get(SHEET_COLUMNS["comments"]),
+        "watch_time_mins": safe_get(SHEET_COLUMNS["watch_time_mins"]),
+        "ctr": safe_get(SHEET_COLUMNS["ctr"]),
+        "avg_view_duration_secs": safe_get(SHEET_COLUMNS["avg_view_duration_secs"]),
+        "impressions": safe_get(SHEET_COLUMNS["impressions"]),
     }
 
 
@@ -114,11 +120,13 @@ def ensure_sheet_exists(channel: str = None):
             _write_headers(sheet_id, tab_name)
             logger.info(f"Created tab '{tab_name}' with headers in sheet {sheet_id}")
         else:
+            last_col = _col_letter(len(SHEET_HEADERS))
             result = service.spreadsheets().values().get(
                 spreadsheetId=sheet_id,
-                range=f"{tab_name}!A1:O1",
+                range=f"{tab_name}!A1:{last_col}1",
             ).execute()
-            if not result.get("values"):
+            existing = result.get("values", [[]])[0] if result.get("values") else []
+            if len(existing) < len(SHEET_HEADERS):
                 _write_headers(sheet_id, tab_name)
     except HttpError as e:
         logger.error(f"Failed to ensure sheet exists: {e}")
@@ -139,9 +147,10 @@ def list_videos(status: str = None, category: str = None, limit: int = 200, chan
     """Return all videos from the channel's sheet tab, optionally filtered."""
     sheet_id, tab_name = _resolve(channel)
     service = _get_service()
+    last_col = _col_letter(len(SHEET_HEADERS))
     result = service.spreadsheets().values().get(
         spreadsheetId=sheet_id,
-        range=f"{tab_name}!A2:O{limit + 1}",
+        range=f"{tab_name}!A2:{last_col}{limit + 1}",
     ).execute()
     rows = result.get("values", [])
 
@@ -164,9 +173,10 @@ def get_video(row: int = None, video_id: str = None, channel: str = None) -> dic
     sheet_id, tab_name = _resolve(channel)
     if row:
         service = _get_service()
+        last_col = _col_letter(len(SHEET_HEADERS))
         result = service.spreadsheets().values().get(
             spreadsheetId=sheet_id,
-            range=f"{tab_name}!A{row}:O{row}",
+            range=f"{tab_name}!A{row}:{last_col}{row}",
         ).execute()
         rows = result.get("values", [])
         if rows:
@@ -201,7 +211,7 @@ def add_video(topic: str, category: str = "", priority: str = "Medium", notes: s
 
     result = service.spreadsheets().values().append(
         spreadsheetId=sheet_id,
-        range=f"{tab_name}!A:O",
+        range=f"{tab_name}!A:{_col_letter(len(SHEET_HEADERS))}",
         valueInputOption="RAW",
         insertDataOption="INSERT_ROWS",
         body={"values": [row_data]},

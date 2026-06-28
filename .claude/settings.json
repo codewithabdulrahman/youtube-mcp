@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__youtube-content__save_script_doc",
+      "Bash(.venv/bin/python -c ' *)",
+      "mcp__youtube-content__build_visual_context",
+      "mcp__youtube-content__save_visuals_doc",
+      "Bash(.venv/bin/python -c \"import googleapiclient; print\\('client', googleapiclient.__version__\\)\")",
+      "Bash(.venv/bin/python)"
+    ]
+  }
+}

@@ -108,6 +108,13 @@ def move_file_to_folder(file_id: str, folder_id: str):
     logger.debug(f"Moved file {file_id} to folder {folder_id}")
 
 
+def delete_file(file_id: str):
+    """Permanently delete a file from Drive."""
+    service = _get_service()
+    service.files().delete(fileId=file_id).execute()
+    logger.info(f"Deleted file {file_id}")
+
+
 def list_files(folder_id: str = None, file_type: str = None, limit: int = 50, channel: str = None) -> list[dict]:
     """List files in a Drive folder."""
     service = _get_service()

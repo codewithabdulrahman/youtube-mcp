@@ -70,10 +70,111 @@ def get_series_candidates(channel: str = None) -> list[dict]:
     ]
 
 
-def get_youtube_analytics(video_url: str) -> dict:
-    """YouTube Analytics API stub — not implemented in MVP."""
+def get_youtube_analytics(video_url: str, published_date: str = None) -> dict:
+    """Fetch real-time metrics for a single video URL from YouTube APIs."""
+    from services.youtube_service import get_full_metrics
+    return get_full_metrics(video_url, published_date=published_date)
+
+
+def sync_all_published(channel: str = None) -> dict:
+    """
+    Fetch latest YouTube metrics for all Published videos and write them to the sheet.
+    Returns a summary of how many rows were synced and which failed.
+    """
+    from services.youtube_service import get_full_metrics
+    videos = sheets_service.list_videos(status="Published", limit=500, channel=channel)
+
+    synced = 0
+    failed = []
+
+    for v in videos:
+        url = v.get("video_url", "").strip()
+        if not url:
+            continue
+
+        metrics = get_full_metrics(url, published_date=v.get("publish_date") or None)
+
+        if "error" in metrics:
+            failed.append({"row": v["row"], "topic": v["topic"], "reason": metrics["error"]})
+            continue
+
+        update_fields = {k: metrics[k] for k in
+                         ("views", "likes", "comments", "watch_time_mins", "ctr",
+                          "avg_view_duration_secs", "impressions")
+                         if k in metrics}
+
+        if update_fields:
+            sheets_service.update_video(v["row"], channel=channel, **update_fields)
+            synced += 1
+        else:
+            failed.append({"row": v["row"], "topic": v["topic"], "reason": "no metrics returned"})
+
+    logger.info(f"sync_all_published: synced={synced}, failed={len(failed)} (channel={channel or 'active'})")
+    return {"synced": synced, "failed": failed, "total_published": len(videos)}
+
+
+def get_performance_insights(channel: str = None) -> dict:
+    """
+    Analyze synced YouTube metrics to surface per-category performance and weak spots.
+    Reads from the sheet — run sync_all_published first to get fresh data.
+    """
+    videos = sheets_service.list_videos(status="Published", limit=500, channel=channel)
+
+    by_category: dict[str, dict] = {}
+    top_performers = []
+    bottom_performers = []
+
+    metric_keys = ("views", "likes", "ctr", "watch_time_mins", "avg_view_duration_secs", "impressions")
+
+    for v in videos:
+        cat = v.get("category") or "Uncategorized"
+        if cat not in by_category:
+            by_category[cat] = {k: [] for k in metric_keys}
+            by_category[cat]["topics"] = []
+
+        by_category[cat]["topics"].append(v["topic"])
+        for k in metric_keys:
+            raw = v.get(k, "")
+            try:
+                by_category[cat][k].append(float(raw))
+            except (ValueError, TypeError):
+                pass
+
+        # Collect (ctr, topic) for ranking — skip videos without CTR data
+        try:
+            top_performers.append({"topic": v["topic"], "category": cat, "ctr": float(v.get("ctr") or 0),
+                                    "views": int(float(v.get("views") or 0))})
+        except (ValueError, TypeError):
+            pass
+
+    # Compute per-category averages
+    category_summary = {}
+    for cat, data in by_category.items():
+        summary = {"video_count": len(data["topics"]), "topics": data["topics"]}
+        for k in metric_keys:
+            vals = data[k]
+            summary[f"avg_{k}"] = round(sum(vals) / len(vals), 2) if vals else None
+        category_summary[cat] = summary
+
+    # Top / bottom 3 by CTR (only videos with CTR data)
+    ranked = sorted([p for p in top_performers if p["ctr"] > 0], key=lambda x: x["ctr"], reverse=True)
+    top3 = ranked[:3]
+    bottom3 = ranked[-3:] if len(ranked) >= 3 else ranked[::-1]
+
+    # Weak areas: categories with avg CTR below overall average
+    all_ctrs = [v for cat in category_summary.values() for v in ([cat["avg_ctr"]] if cat["avg_ctr"] else [])]
+    overall_avg_ctr = round(sum(all_ctrs) / len(all_ctrs), 2) if all_ctrs else None
+    weak_categories = [
+        cat for cat, s in category_summary.items()
+        if s["avg_ctr"] is not None and overall_avg_ctr and s["avg_ctr"] < overall_avg_ctr
+    ]
+
     return {
-        "status": "not_implemented",
-        "message": "YouTube Analytics API integration is planned for a future version.",
-        "video_url": video_url,
+        "channel": channel,
+        "published_videos_analyzed": len(videos),
+        "overall_avg_ctr": overall_avg_ctr,
+        "weak_categories": weak_categories,
+        "top_performers_by_ctr": top3,
+        "bottom_performers_by_ctr": bottom3,
+        "by_category": category_summary,
     }
