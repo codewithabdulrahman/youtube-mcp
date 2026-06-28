@@ -370,6 +370,27 @@ async def list_tools() -> list[types.Tool]:
                 "required": ["topic", "content", "row"],
             },
         ),
+        types.Tool(
+            name="consolidate_visuals_into_scripts",
+            description="For buildship & shorts: find all separate 'Visuals: ...' docs, merge them into their script docs with a clear heading, and delete the orphaned visuals docs.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    **_CHANNEL_PARAM,
+                    "status": {"type": "string", "description": "Filter by video status (e.g. 'Script Complete'). If omitted, all videos are checked."},
+                },
+            },
+        ),
+        types.Tool(
+            name="cleanup_orphaned_visuals_docs",
+            description="For buildship & shorts: delete orphaned 'Visuals: ...' docs from Drive (visuals now live in script docs). For other channels, does nothing.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    **_CHANNEL_PARAM,
+                },
+            },
+        ),
 
         types.Tool(
             name="fetch_video_comments",
@@ -659,6 +680,17 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                 topic=arguments["topic"],
                 content=arguments["content"],
                 row=arguments["row"],
+                channel=ch,
+            ))
+
+        if name == "consolidate_visuals_into_scripts":
+            return _ok(visual_agent.consolidate_visuals_into_scripts(
+                channel=ch,
+                status=arguments.get("status"),
+            ))
+
+        if name == "cleanup_orphaned_visuals_docs":
+            return _ok(visual_agent.cleanup_orphaned_visuals_docs(
                 channel=ch,
             ))
 

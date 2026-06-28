@@ -38,36 +38,38 @@ TOKEN_PATH = BASE_DIR / "config" / "token.json"
 # Google Sheets column mapping (1-indexed)
 SHEET_COLUMNS = {
     "id": 1,
-    "topic": 2,
+    "title": 2,  # Column 2 is now "Topic" (renamed from "Type")
+    "topic": 2,  # alias for "title" — both reference column 2
+    "type": 2,   # backward compatibility alias
     "category": 3,
     "status": 4,
     "priority": 5,
     "updated_at": 6,
     "video_id": 7,
-    "script_doc": 8,
-    "notes": 9,
-    "views": 10,
+    "notes": 8,
+    "views": 9,
     # YouTube metrics — synced via sync_youtube_stats
-    "likes": 11,
-    "comments": 12,
-    "watch_time_mins": 13,
-    "ctr": 14,
-    "avg_view_duration_secs": 15,
-    "impressions": 16,
-    "reach": 17,
-    "retention_rate": 18,
-    "performance_state": 19,
-    "comment_sentiment": 20,
+    "likes": 10,
+    "comments": 11,
+    "watch_time_mins": 12,
+    "ctr": 13,
+    "avg_view_duration_secs": 14,
+    "impressions": 15,
+    "reach": 16,
+    "retention_rate": 17,
+    "performance_state": 18,
+    "comment_sentiment": 19,
     # Less-frequently needed columns
-    "research_score": 21,
-    "research_doc": 22,
+    "research_score": 20,
+    "research_doc": 21,
+    "script_doc": 22,
     "thumbnail": 23,
     "publish_date": 24,
     "created_at": 25,
 }
 
 SHEET_HEADERS = [
-    "ID", "Topic", "Category", "Status", "Priority",
+    "ID", "Title", "Type", "Category", "Status", "Priority",
     "Updated At", "Video ID", "Script Doc", "Notes", "Views",
     "Likes", "Comments", "Watch Time (mins)", "CTR (%)", "Avg View Duration (secs)", "Impressions",
     "Reach (Unique Viewers)", "Retention Rate (%)", "Performance State", "Comment Sentiment",

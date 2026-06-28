@@ -1,256 +1,273 @@
-# ContrasteYT — Visual Production Prompt v3
+# Build & Ship — Visual Production Prompt v1
 
-**Single source of truth for shot-by-shot visual direction for ContrasteYT videos.**
+**Single source of truth for shot-by-shot visual direction for Build & Ship videos.**
 
-This prompt is consumed by the automated pipeline. Using the completed script (GUION), generate per-scene visual direction for an editor assembling footage, graphics, animations, and overlays.
+This prompt is consumed by the automated pipeline. Using the completed SCRIPT, generate per-scene
+visual direction for an editor cutting a talking-head + b-roll commentary video.
 
-> Retention is the spine of every visual rule below. CTR is strong (~6.35%); average percentage viewed (~35%) is the growth bottleneck. Every visual choice exists to keep one viewer watching one more sentence — or to prime a comment that brings them back.
+> Retention is the spine of every visual rule below. This is a **builder-commentator** channel: the
+> host's face and judgment are the product. Visuals exist to keep one builder watching one more
+> sentence — to make a number land, to prove a claim is real, and to break the monotony of a static
+> talking head. Never let the screen go flat for more than a few seconds.
 
 ---
 
 ## 0. How this file is used
 
-1. Receive the completed GUION for the topic.
+1. Receive the completed SCRIPT for the topic.
 2. Generate scene-by-scene visual directions following this prompt.
-3. Return the full scene list + shot list summary table.
+3. Return the full scene list + a shot-list summary table.
 
-Do not output this prompt, the checklist, or production notes — only the scene list and shot list summary.
+Do not output this prompt, the checklist, or production notes — only the scene list and shot-list
+summary.
 
 ---
 
-## 1. Channel Visual Identity
+## 1. Channel visual identity
 
-### 1.1 Footage Ratio (Golden Rule)
-- **75–80% real footage** — archival, documentary, on-location
-- **20–25% graphics / text overlays** — data, maps, Mode E text beats
-- **0% AI-generated imagery** (default) — unless the producer explicitly approves a single AI sequence for a specific creative reason
+### 1.1 Footage ratio (golden rule)
+This is a **talking-head-led** channel. The mix, across the whole video:
+- **~50–60% talking head** — the host on camera, direct address. This is the spine, not the filler.
+- **~20–25% source inserts / screen-capture** — the actual study, tweet, dashboard, code editor,
+  news headline, chart being discussed. This is where the channel's "I actually checked" authority
+  comes from. Show the real thing.
+- **~15–25% graphics / kinetic text** — animated numbers, comparisons, the payoff line on screen.
+- **Light, purposeful b-roll only** — never generic "developer typing in a dark room" wallpaper
+  unless it genuinely fits. A few seconds, as illustration, never as a crutch.
+- **0% AI-generated imagery** by default — the host built real things; fake footage undercuts the
+  "measured, not vibed" credibility. Use only if the producer explicitly approves one sequence.
 
-Real footage = authenticity. ContrasteYT's authority is built on showing real places, real construction, real streets. AI imagery undercuts that.
+> Rule of thumb: when in doubt, cut back to the host's face. The parasocial trust is the moat. But
+> never hold a *static* talking head longer than ~8–10 seconds without a cutaway, overlay, or
+> reframe — that's where viewers drop.
 
-### 1.2 Visual Modes
+### 1.2 Visual modes
 
-The channel uses five display modes. Reference them by name throughout the scene list:
+Reference these by name throughout the scene list:
 
 | Mode | Description |
 |------|-------------|
-| **Mode A** | Full-frame B-roll — real footage, narration over it |
-| **Mode B** | B-roll + lower-third text (statistic, proper noun, date) |
-| **Mode C** | Full-screen graphic — chart, map, or comparison table |
-| **Mode D** | Split-frame — left = US version, right = LATAM version (the channel's signature contrast device) |
-| **Mode E** | Animated text over real footage — key phrase, question, or comment beat |
+| **Mode A** | **Talking head** — host on camera, direct address. The default for hooks, POV lines, reframes, CTAs. |
+| **Mode B** | **Talking head + overlay** — host on camera with a lower-third or floating graphic beside them (a number, a name, a source citation). |
+| **Mode C** | **Full-screen graphic** — animated chart, stat reveal, or comparison table. Narration over it. |
+| **Mode D** | **Source insert / b-roll** — screen-capture of the real artifact (study PDF, tweet, dashboard, code, headline) or light illustrative b-roll, over narration. |
+| **Mode E** | **Kinetic text** — one bold line or number animating on screen. For the hook number, the payoff line, and comment beats. Punctuation, not wallpaper. |
+| **Mode F** | **Split-screen contrast** — two panels making a contradiction visible (feel vs clock, 65% vs 40%, with-axis vs no-axis). The channel's "make the gap visible" device. |
 
-Mode D is the channel's **signature engagement device** — it makes the contrast visible. Use it deliberately: at Act 3's structural reveal, at Act 4's paradox launch, and at Comment Beat 1.
+**Mode F** is the signature device for this channel's contradiction-driven takes. Use it on the core
+tension of the video — the two-number gap, the two camps, the before/after.
 
-Mode E drives comment and share behavior. Use it only on lines the viewer should *feel*, not just hear — a key paradox, a comment beat, a reframe. Use sparingly so it lands with force when it appears.
+**Mode E** drives comments and shares. Use it only on lines the viewer should *feel* — the payoff,
+a punch number, a comment beat. Overuse kills it.
 
 ---
 
 ## 2. Task
 
-Using the script provided, create detailed visual directions for every scene in: **$topic**
+Using the SCRIPT provided, create detailed visual directions for every scene in: **$topic**
 
-Videos run **12–14 minutes** (~155 wpm Spanish TTS on 1,900–2,200 word scripts). Plan your scene count and shot durations to fill that runtime without padding.
+Videos run **~8–12 minutes** (~165 wpm English delivery on ~1,500–2,000 word scripts). Plan scene
+count and shot durations to fill the runtime without padding. Expect roughly **20–30 scenes**.
 
 ---
 
-## 3. Output Format — Per Scene
+## 3. Output format — per scene
 
 For each scene:
 
 ```
 SCENE [NUMBER] — [TIMESTAMP] — [SCENE TYPE] — [MODE]
 
-VISUAL: [What appears on screen — specific, not vague]
-AUDIO: [Exact quote from script for this moment]
-B-ROLL: [Stock footage description + 3 search terms for Pexels / Storyblocks / Envato]
-GRAPHICS: [Text overlays, charts, animations — include exact text and animation style]
+VISUAL: [What's on screen — specific, not vague]
+AUDIO: [Exact quote from the script for this moment]
+SOURCE/B-ROLL: [If Mode D: exact artifact to screen-capture (URL/source) OR stock b-roll description + 3 search terms for Pexels / Storyblocks / Envato. If none: "N/A — talking head"]
+GRAPHICS: [Text overlays, charts, kinetic text — exact text + animation style]
 DURATION: [Estimated seconds]
-NOTES: [Special instructions for the editor]
+NOTES: [Editor instructions — pacing, emphasis, thumbnail flag]
 ```
 
 ---
 
-## 4. Scene Types
+## 4. Scene types
 
-- **TALKING HEAD** — Presenter on camera
-- **B-ROLL** — Supporting footage over narration (Mode A or B)
-- **SCREEN RECORD** — Software or website demonstration
-- **ANIMATION** — Animated graphics or explainer (Mode C)
-- **TEXT ON SCREEN** — Animated text over footage (Mode E)
-- **MAP** — Geographic visualization (Mode C variant)
-- **CHART** — Data visualization (Mode C variant)
-- **SPLIT SCREEN** — US vs. LATAM contrast (Mode D)
+- **TALKING HEAD** — host on camera (Mode A / B)
+- **SOURCE INSERT** — screen-capture of the real study, tweet, dashboard, headline, code (Mode D)
+- **B-ROLL** — illustrative supporting footage over narration (Mode D)
+- **GRAPHIC** — full-screen chart / stat / table (Mode C)
+- **KINETIC TEXT** — animated line or number on screen (Mode E)
+- **SPLIT SCREEN** — two-panel contrast (Mode F)
 
 ---
 
-## 5. Visual Direction Standards
+## 5. Visual direction standards
 
-### For B-Roll (Mode A / Mode B)
-- Always provide 3 alternative search terms (Pexels, Storyblocks, Envato)
-- Specify: wide shot / medium shot / close-up
-- Specify mood: professional, urgent, hopeful, cautionary, warm, contemplative
-- Avoid generic office stock footage unless it perfectly fits
-- Prefer footage that contains the **physical anchor object** from the script — show it, don't abstract it
+### Talking head (Mode A / B)
+- Vary the framing across the video so it never feels static: alternate between a **medium** (chest-up,
+  the default), a **close-up** (for the punch lines and the payoff), and a **wide / B-cam angle** (for
+  the steelman or a tonal shift). Note the framing in VISUAL.
+- Use a **B-cam jump-cut** or a small push-in on the most important lines, so the talking head itself
+  carries energy.
+- Mode B floats the number/name beside the host the moment the ear hears it.
 
-### For Mode D (Split-Frame)
-- Left panel = US version; right panel = LATAM version
-- Each panel needs its own B-roll search term
-- Specify whether labels appear (e.g., "ESTADOS UNIDOS" / "LATINOAMÉRICA") — always bold, fade in
-- Preferred for any binary-choice moment — especially Comment Beat 1 (Section 7)
+### Source inserts (Mode D) — the credibility engine
+- When the script names a study, a stat, a tweet, a company, a dashboard — **show the real artifact.**
+  Specify exactly what to capture (e.g., "the METR paper title page + the figure showing −19%",
+  "the actual Indie Hackers thread", "a redacted MRR screenshot with no axis").
+- Highlight/annotate the specific number on screen (circle, underline, color pop) so the eye lands
+  where the ear is.
+- Keep inserts short — 3–6 seconds — then cut back to the host or a graphic.
 
-### For Mode E (Animated Text on Footage)
-- Specify font weight: bold headline vs. body weight
-- Specify animation: fade in, slide up, pop, typewriter
-- Include the **exact text** to display
-- 2–3 seconds hold after animation completes, then clear before the next scene
-- Use sparingly: Mode E is punctuation, not wallpaper
+### Graphics (Mode C)
+- Specify chart type (bar, line, comparison table) and the exact numbers.
+- Color scheme: **green = the good/measured outcome, red = the bad/illusion outcome, neutral = blue/grey.**
+- Animate the number counting up or the bar growing — motion holds attention.
+- Source attribution in small text, bottom corner.
 
-### For Mode C (Charts / Maps / Tables)
-- Specify chart type: bar, line, pie, comparison table
-- Include exact numbers to display
-- Color scheme: green = positive, red = negative, blue = neutral
-- Source attribution in small text, bottom-right
-- For maps: specify geographic scope (US national / LATAM regional / specific country), what to highlight or animate, labels required
+### Kinetic text (Mode E)
+- Include the **exact text**, font weight (bold headline vs body), and animation (fade, slide-up, pop,
+  typewriter).
+- Hold 2–3 seconds after the animation completes, then clear before the next scene.
+- Reserve for the hook number, the payoff line, and the two comment beats.
 
----
-
-## 6. Act-by-Act Visual Strategy
-
-### Act 1 — Hook (0:00–~0:45) · ~70–90 script words
-
-**Goal:** Snap attention in 5–12 seconds. No warmup.
-
-- **First frame:** the physical anchor object — no titles, no channel card, no abstract opener
-- **Pacing:** 2–3 seconds per shot, hard cuts only, no dissolves
-- **Mode:** A or B — real footage only in the hook; no Mode E until the main loop is open
-- **Withhold the answer:** show the object in its US context; cut before revealing the contrast. The viewer's curiosity is the loop.
-- Do NOT show the LATAM counterpart here — that is Act 4's payoff
-
-### Act 2 — Stakes (~0:45–1:30) · ~120–150 script words
-
-**Goal:** Make the contrast personal. Earn the viewer's commitment.
-
-- 3–4 second shots; slightly slower than the hook
-- Mode B (lower-thirds) for any concrete statistic introduced
-- One emotional close-up on the anchor object — something tactile the viewer can project onto
-- No text-heavy scenes yet; let narration carry stakes, visuals support mood
-
-### Act 3 — History / Mechanism (~1:30–7:30) · ~900–1,050 script words
-
-**Goal:** Depth without drag. Visuals carry the information density.
-
-- Alternate B-roll shot types every 4–6 seconds to prevent fatigue
-- Mode B for every date, statistic, and proper noun introduced (lower-third confirms what the ear hears)
-- Mode C for any multi-variable comparison or timeline (chart / map)
-- **Anti-dump rule** mirrors the script: never hold a graphic for more than 10 seconds without cutting to B-roll
-- At least one Mode D (split-frame) in Act 3 — make the structural contrast visible
-- **Loop visual:** at each micro-loop payoff, use a close-up of the anchor object to re-anchor. When a loop re-opens, pull back to a wider shot — visually signals "more to come"
-
-### Act 4 — LATAM Validation + Paradox (~7:30–10:00)
-
-**Goal:** Pride, not envy. The tour of Latin America.
-
-- Open Act 4 with a Mode D split-frame — US problem left / LATAM solution right — to launch the paradox frame
-- **Country tour:** each country mentioned in the script gets its own B-roll moment. 5+ countries = 5+ distinct visual moments. Each country should feel visually different — no blurred stock-footage montage
-- Mood shift: warmer color palette if the editor has color-grade control (amber / warm vs. the cooler institutional blue of Act 3's US footage)
-- **Comment Beat 1 — declare your team (~80% mark):**
-
-  When the script hits Beat 1, give it a **two-option on-screen treatment**. Best option: a **Mode D split-frame** — left = the US thing, right = the LATAM thing — so the screen literally shows the two camps the viewer is being asked to pick between. The channel's signature device doubles as the engagement punch. Alternative: **Mode E with two labels animating in** (the two choices as text). Either way: 2–3 seconds, animated entry. This is a deliberate **engagement beat**, not a warmth hold — a visible binary choice on screen lifts the reply rate, because people type the side they can see.
-
-### Act 5 — Reframe + Series Promise + CTA (~10:00–end)
-
-**Goal:** Emotional close, series continuity, and maximum comment launch.
-
-- **Circle-back echo:** return to the same anchor object from Act 1 — same framing if possible. The visual rhyme signals resolution.
-- **Series-promise montage / next-episode tease:** quick cuts previewing the next video's object — 3–5 shots, 1.5–2 seconds each. Fast, curious.
-
-  **SERIES MONTAGE DOUBLES AS RIVALRY PRIMER:** if Beat 2 uses the rivalry variant ("¿qué país construye mejor?"), build the series-promise montage from quick real footage across 4–5 countries (Mexico, Colombia, Argentina, Peru, Chile) — so by the time the question lands, the viewer has already seen "their" country on screen and is primed to defend it.
-
-- **Internal-link callout visual** (if the script includes a "watch next" soft tease per the script's Section 7): use a subtle Mode B lower-third for the linked video title — never a full-screen card mid-scene. The explicit endscreen callout lives in the endscreen itself, not in the narration scenes. The "watch next" overlay belongs in Act 5 only — never before the 60% payoff.
-
-- **Comment Beat 2 — rivalry / crowdsource (right before the CTA):**
-
-  On the rivalry/crowdsource line, put the question on screen as **Mode E animated text over real footage** — "¿Qué país construye mejor?" or "¿Qué otra cosa no te cuadra?". 2–3 seconds. This is the last text the viewer sees before the comment box, so it must be clean and readable. Place it immediately **BEFORE** the final silent hold.
-
-- **Final silent hold — the closer:**
-
-  The no-text silent hold is the **very last beat only**. Beat 2's Mode E comment question lands just BEFORE it and clears off screen before the silent image begins. **Order is: series montage / rivalry primer → Beat 2 question (Mode E text) → final silent beautiful hold (no text).** Never let the no-text rule cancel the comment question — that question is the highest-value engagement asset in the back half.
-
-  Hold on **one real, beautiful image** tied to the video's emotional truth. No text. No overlay. 8–10 seconds. Let the narration carry it. The silence after the comment question gives the viewer space to act.
+### Split-screen contrast (Mode F)
+- Define the **left panel** and **right panel** explicitly (e.g., left = "FELT: +20% faster" / right =
+  "REAL: −19% slower"). Label each panel, bold, fade in.
+- Use on the video's core contradiction and at Comment Beat 1 when it's a two-camp question.
 
 ---
 
-## 7. Retention Pacing Reference
+## 6. Beat-by-beat visual strategy
 
-| Segment | Pacing | Cut Style |
+The SCRIPT follows the five-beat structure from the script prompt. Map visuals to it.
+
+### Beat 1 — Cold-open hook (0:00–~0:30)
+**Goal:** stop the scroll in the first 3–10 seconds.
+- **Open on the host (Mode A), OR open on a Mode E kinetic stat** if the hook leads with a number —
+  whichever hits harder. No channel card, no logo sting, no "intro."
+- Hard cuts only, fast energy. If the hook has a number (e.g., "19% slower"), punch it as Mode E or a
+  Mode F split the instant it's said.
+- **Withhold the resolution** — show the contradiction, not the answer. The main loop is the curiosity.
+- Flag a **THUMBNAIL CANDIDATE** here — the hook number or the host's expression on the hook line.
+
+### Beat 2 — Stakes / why-you-should-care (~0:30–1:30)
+**Goal:** make it personal; establish the host actually lived this.
+- Mostly Mode A (host on camera) — this is a trust beat, the face sells it.
+- On the credibility line ("I've shipped this mistake myself"), consider a 2–3s Mode D b-roll cutaway
+  that illustrates the lived experience, then back to the host.
+- Mode B lower-third for any concrete number introduced.
+
+### Beat 3 — The evidence / the argument (~1:30–7:00)
+**Goal:** information density without going flat. Visuals carry the proof.
+- This is the **Mode D + Mode C** zone: show the study, the screenshot, the dashboard; build the chart.
+- **Source-insert every named study/stat/company** the moment it's spoken (credibility engine).
+- **Anti-flat rule:** never hold one mode >8–10 seconds. Rotate host ↔ insert ↔ graphic.
+- Build the **core contrast as Mode F** when the key two-number gap lands (e.g., 65% vs 40%, predicted
+  vs actual).
+- **Steelman moment:** shift the talking-head framing (B-cam / wider) so the viewer *feels* the host
+  switching to "the other side's strongest case," then cut back to the main angle on the turn.
+- **The "it's worse than that" escalation:** punch it with a Mode E line or a sharp Mode D reveal.
+
+### Mid-video re-hook (~50%)
+- On the re-hook line, cut to a **clean Mode A close-up** (or Mode E question) that re-opens curiosity.
+  A visual reset at the halfway cliff.
+
+### Beat 4 — The reframe / what to do (~7:00–9:30)
+**Goal:** deliver the payoff and make it usable.
+- **Payoff line = Mode E kinetic text**, full force (e.g., "Feeling fast ≠ being fast"). This is the
+  most-clipped moment — make it clean and screenshot-able. Flag **THUMBNAIL CANDIDATE**.
+- The rule/model = **Mode C** — number the steps on screen as the host says them ("1. Time it.
+  2. Tutor, not ghostwriter.") so it's save-able.
+- **Comment Beat 1 (declare your side, ~75–80%):** put the two camps on screen — **Mode F split** (the
+  two options) or **Mode E** with the two labels animating in. 2–3s, animated entry. A visible binary
+  lifts reply rate — people type the side they can see.
+
+### Beat 5 — Persona close + series promise + CTA (~9:30–end)
+**Goal:** brand continuity + maximum comment launch.
+- **Persona note** = Mode A close-up, host direct to camera. The "measured, not vibed" line is the
+  brand brick — let the face carry it, no distractions.
+- **Series promise / next-angle tease:** 2–3 quick Mode D cuts previewing the next topic (1.5–2s each).
+- **Comment Beat 2 (crowdsource/rivalry):** put the question on screen as **Mode E kinetic text**,
+  placed immediately **before** the final beat. This is the last text before the comment box — clean,
+  readable.
+- **Internal-link callout:** only if the script includes a "watch next" tease — a subtle **Mode B
+  lower-third** with the linked title, or an endscreen card. Never a full-screen "watch now" overlay
+  before the 60% payoff.
+- **Final hold:** end on a confident Mode A close-up of the host (or a clean Mode E channel tag).
+  2–4s. The face is the closer on a personal-brand channel.
+
+---
+
+## 7. Retention pacing reference
+
+| Segment | Pacing | Cut style |
 |---------|--------|-----------|
-| Hook (0:00–0:30) | 2–3 seconds per shot | Hard cuts only |
-| Act 2 | 3–4 seconds per shot | Hard cuts, occasional match cut |
-| Act 3 body | 4–6 seconds per shot | Varies by mode |
-| Mode C graphics | 6–10 seconds | Hold, then cut to B-roll |
-| Act 4 country tour | 3–4 seconds per country | Rapid but purposeful |
-| Comment Beat 1 (Mode D / Mode E) | 2–3 seconds | Animated entry, quick hold, clear |
-| Act 5 series montage | 1.5–2 seconds per shot | Fast cuts |
-| Comment Beat 2 (Mode E) | 2–3 seconds | Animated entry, hold, clear |
-| Final silent hold | 8–10 seconds | — |
+| Hook (0:00–0:30) | 2–3 s per shot | Hard cuts only |
+| Beat 2 (stakes) | 3–5 s per shot | Hard cuts, host-led |
+| Beat 3 (evidence) | 4–8 s per shot | Rotate host ↔ insert ↔ graphic; never >10s static |
+| Mode C graphics | 5–8 s | Animate, then cut |
+| Source inserts (Mode D) | 3–6 s | Quick, annotated, cut back |
+| Payoff (Mode E) | 2–3 s | Animated entry, hold, clear |
+| Comment Beat 1 (Mode F / E) | 2–3 s | Animated entry, quick hold |
+| Series tease | 1.5–2 s per shot | Fast cuts |
+| Comment Beat 2 (Mode E) | 2–3 s | Animated entry, hold, clear |
+| Final hold | 2–4 s | — |
 
 ---
 
-## 8. Loop Management — Visuals
+## 8. Loop management — visuals
 
 The script's open loops are the retention engine. Visuals must support them, not spoil them.
-
-- **While a loop is open:** wide or medium shots, incomplete compositions, footage that implies "there's more to see." Never show the full answer before the script's reveal.
-- **At loop payoff:** close-up on the anchor object, warm hold, slower cut pace signals resolution.
-- **Never flash forward:** do not pull B-roll from Act 4 or Act 5 into earlier acts — the editor must not accidentally "answer" the loop with early footage.
-
----
-
-## 9. Thumbnail Harvest
-
-During the scene list, flag **2–3 candidate thumbnail frames** — moments where:
-- The contrast is maximally visible (a Mode D split that reads well as a static image)
-- The hook object is front-and-center, close-up, high contrast
-- A visual expression or composition beats the thumbnail competition in the same search category
-
-Flag them in NOTES as: `THUMBNAIL CANDIDATE — [reason]`
+- **While a loop is open:** keep the resolving graphic/number off screen. Tease, don't reveal.
+- **At loop payoff:** bring the Mode E / Mode F reveal in at full force — the visual lands with the line.
+- **Never flash forward:** don't show the Beat 4 payoff graphic during Beat 3.
 
 ---
 
-## 10. Shot List Summary
+## 9. Thumbnail harvest
 
-End the output with a condensed table:
+Flag **2–3 candidate thumbnail frames** in NOTES, where:
+- A punch number reads big and clean as a static image (e.g., "−19%", "65% vs 40%").
+- The host's expression on the hook or payoff line is high-contrast and clickable.
+- A Mode F split reads instantly as a contradiction.
 
-| Scene # | Timestamp | Type | Mode | Primary Visual | B-Roll Needed | Custom Graphic |
-|---------|-----------|------|------|----------------|---------------|----------------|
+Flag as: `THUMBNAIL CANDIDATE — [reason]`
+
+---
+
+## 10. Shot list summary
+
+End with a condensed table:
+
+| Scene # | Timestamp | Type | Mode | Primary Visual | Source/B-Roll Needed | Custom Graphic |
+|---------|-----------|------|------|----------------|----------------------|----------------|
 | … | … | … | … | … | Yes / No | Yes / No |
 
 ---
 
-## 11. Pre-Output Checklist — INTERNAL, DO NOT OUTPUT
+## 11. Pre-output checklist — INTERNAL, DO NOT OUTPUT
 
 **Retention**
-- [ ] First frame is the physical anchor object — no titles, no warmup
-- [ ] Hook pacing: 2–3 seconds per shot, hard cuts only
-- [ ] LATAM solution NOT shown before Act 4
-- [ ] No B-roll accidentally answers an open loop ahead of the script's reveal
-- [ ] Act 3 graphics hold ≤10 seconds before cutting back to B-roll
-- [ ] Mid-video re-hook scene present (~50% mark)
+- [ ] Opens on host or hook stat — no logo sting, no intro card
+- [ ] Hook pacing 2–3 s/shot, hard cuts; hook number punched (Mode E/F) if present
+- [ ] No static talking head held >8–10 s without cutaway/overlay/reframe
+- [ ] Beat 3 rotates host ↔ source insert ↔ graphic; no mode held >10 s
+- [ ] Mid-video re-hook scene present (~50%)
+- [ ] Payoff graphic/number not shown before its Beat 4 reveal
 
 **Visual identity**
-- [ ] Footage ratio: 75–80% real, 0% AI (unless producer-approved)
-- [ ] Mode D used at least once in Act 3 and once at the Act 4 paradox launch
-- [ ] Mode E used sparingly — only on lines the viewer must feel
+- [ ] Footage mix roughly 50–60% talking head, 0% AI (unless producer-approved)
+- [ ] Every named study/stat/company gets a real source insert (Mode D)
+- [ ] Mode F used on the core contradiction
+- [ ] Mode E reserved for hook number, payoff line, comment beats
 
 **Engagement**
-- [ ] Beat 1 (declare-your-team) gets a two-option visual in Act 4 — Mode D split-frame preferred, or two-label Mode E
-- [ ] Beat 2 (rivalry/crowdsource) gets a Mode E text reinforcement in Act 5, placed BEFORE the final silent hold — never suppressed by it
-- [ ] If Beat 2 uses the rivalry variant, the series montage cues 4+ countries as a rivalry primer
-- [ ] Final silent hold is the very last beat — Beat 2 Mode E clears before it begins
+- [ ] Comment Beat 1 (declare your side) gets a Mode F split or two-label Mode E in Beat 4
+- [ ] Comment Beat 2 (crowdsource/rivalry) gets Mode E text in Beat 5, just before the final hold
+- [ ] Persona note delivered as a clean Mode A close-up
 
 **Internal linking**
-- [ ] If the script references an older video before 60%, use a subtle Mode B lower-third — never a "watch now" overlay in the open-loop stretch
-- [ ] The explicit "watch next" callout visual lives in Act 5 / endscreen only
+- [ ] Any pre-60% video reference is a subtle Mode B lower-third — never a "watch now" overlay
+- [ ] Explicit "watch next" visual lives in Beat 5 / endscreen only
 
 **Completeness**
 - [ ] 2–3 thumbnail candidates flagged in NOTES

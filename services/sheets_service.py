@@ -78,10 +78,13 @@ def _row_to_dict(row: list, row_number: int) -> dict:
     def safe_get(idx: int) -> str:
         return row[idx - 1] if len(row) >= idx else ""
 
+    title_value = safe_get(SHEET_COLUMNS["title"])
     return {
         "row": row_number,
         "id": safe_get(SHEET_COLUMNS["id"]),
-        "topic": safe_get(SHEET_COLUMNS["topic"]),
+        "title": title_value,
+        "topic": title_value,  # alias — both reference column 2
+        "type": title_value,   # backward compatibility
         "category": safe_get(SHEET_COLUMNS["category"]),
         "status": safe_get(SHEET_COLUMNS["status"]),
         "priority": safe_get(SHEET_COLUMNS["priority"]),

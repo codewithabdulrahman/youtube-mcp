@@ -35,7 +35,7 @@ cultural, architectural, and material contrasts between the United States and La
 
 ## 2. Inputs (provided by the workflow)
 
-1. **VIDEO TOPIC** — the physical object / contrast. Must pass the **Object Test** (Section 3).
+1. **VIDEO TOPIC / TITLE** — the physical object / contrast. Must pass the **Object Test** (Section 3).
 2. **KEY HISTORICAL FACTS** — real, verifiable data for Act 3 (dates, proper nouns, non-round numbers).
 3. **LATAM ANGLE** — how Latin America solved the same problem differently.
 4. **EMOTIONAL TRUTH** — the deeper cultural meaning the video lands on.
@@ -152,7 +152,7 @@ The workflow passes a list of published videos. Expected columns:
 |---|---|---|
 | `title` | yes | Spanish video title |
 | `url` | yes | Full YouTube link (goes in description) |
-| `object` / `topic` | optional | Physical anchor / subject, for higher-precision matching |
+| `topic` | optional | Physical anchor / subject, for higher-precision matching |
 | `series` | optional | Series name |
 | `tags` | optional | Keywords |
 
