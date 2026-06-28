@@ -70,6 +70,7 @@ async def list_tools() -> list[types.Tool]:
                     "sheet_id": {"type": "string", "description": "Google Spreadsheet ID for this channel"},
                     "drive_folder_id": {"type": "string", "description": "Google Drive root folder ID for this channel"},
                     "sheet_tab": {"type": "string", "description": "Tab name in the spreadsheet (default: 'Videos')", "default": "Videos"},
+                    "youtube_channel_id": {"type": "string", "description": "YouTube channel ID (UCxxxxxxxx) — required for Analytics API on brand accounts"},
                 },
                 "required": ["name", "display_name", "sheet_id", "drive_folder_id"],
             },
@@ -87,7 +88,7 @@ async def list_tools() -> list[types.Tool]:
         ),
         types.Tool(
             name="update_channel",
-            description="Update config fields (display_name, sheet_id, sheet_tab, drive_folder_id) for an existing channel.",
+            description="Update config fields (display_name, sheet_id, sheet_tab, drive_folder_id, youtube_channel_id) for an existing channel.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -96,6 +97,7 @@ async def list_tools() -> list[types.Tool]:
                     "sheet_id": {"type": "string"},
                     "sheet_tab": {"type": "string"},
                     "drive_folder_id": {"type": "string"},
+                    "youtube_channel_id": {"type": "string", "description": "YouTube channel ID (UCxxxxxxxx) — required for Analytics API on brand accounts"},
                 },
                 "required": ["name"],
             },
@@ -168,9 +170,13 @@ async def list_tools() -> list[types.Tool]:
                     "script_doc": {"type": "string"},
                     "thumbnail": {"type": "string"},
                     "publish_date": {"type": "string"},
-                    "video_url": {"type": "string"},
+                    "video_id": {"type": "string", "description": "YouTube video ID (11-char, e.g. dQw4w9WgXcQ)"},
                     "notes": {"type": "string"},
                     "views": {"type": "string"},
+                    "reach": {"type": "string", "description": "Unique viewers (estimated)"},
+                    "retention_rate": {"type": "string", "description": "Average view percentage (0-100)"},
+                    "performance_state": {"type": "string", "description": "Video health: Growing, Stable, Declining, or Dead"},
+                    "comment_sentiment": {"type": "string", "description": "Overall comment tone: Mostly Positive, Mixed, or Mostly Negative"},
                     **_CHANNEL_PARAM,
                 },
                 "required": ["row"],
@@ -365,6 +371,25 @@ async def list_tools() -> list[types.Tool]:
             },
         ),
 
+        types.Tool(
+            name="fetch_video_comments",
+            description=(
+                "Fetch top comments for a published video so Claude can assess overall sentiment. "
+                "Returns up to 50 comments sorted by relevance. "
+                "After reading them, call update_video with comment_sentiment set to: "
+                "'Mostly Positive', 'Mixed', or 'Mostly Negative'. "
+                "Accepts a full YouTube URL or a bare 11-character video ID."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "video_url": {"type": "string", "description": "YouTube video URL or bare video ID (e.g. dQw4w9WgXcQ)"},
+                    "max_results": {"type": "integer", "description": "Max comments to fetch (default 50)", "default": 50},
+                },
+                "required": ["video_url"],
+            },
+        ),
+
         # ── Document / Drive tools ──────────────────────────────────────────
         types.Tool(
             name="create_google_doc",
@@ -420,6 +445,18 @@ async def list_tools() -> list[types.Tool]:
                 "properties": {**_CHANNEL_PARAM},
             },
         ),
+        types.Tool(
+            name="sync_column_order",
+            description=(
+                "Reorder the Google Sheet columns to match the current SHEET_HEADERS definition in settings.py. "
+                "Run this after changing the column order in code to keep the live sheet in sync. "
+                "Preserves all existing data — no rows are lost."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {**_CHANNEL_PARAM},
+            },
+        ),
 
         # ── Analytics tools ─────────────────────────────────────────────────
         types.Tool(
@@ -443,6 +480,7 @@ async def list_tools() -> list[types.Tool]:
             description=(
                 "Fetch live YouTube metrics (views, likes, comments, watch time, CTR, impressions, "
                 "avg view duration) for all Published videos and write them to the sheet. "
+                "Reads the video ID from each row's Notes field (store the bare 11-char ID there, e.g. dQw4w9WgXcQ). "
                 "Requires YouTube OAuth scopes — re-run auth if this fails."
             ),
             inputSchema={
@@ -483,6 +521,7 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                 sheet_id=arguments["sheet_id"],
                 drive_folder_id=arguments["drive_folder_id"],
                 sheet_tab=arguments.get("sheet_tab", "Videos"),
+                youtube_channel_id=arguments.get("youtube_channel_id", ""),
             ))
 
         if name == "set_active_channel":
@@ -659,6 +698,9 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
             cfg = channel_service.get_channel_config(ch)
             return _ok({"status": "ok", "channel": cfg["name"], "message": "Sheet and Drive structure verified."})
 
+        if name == "sync_column_order":
+            return _ok(sheets_service.sync_column_order(channel=ch))
+
         # Analytics tools
         if name == "get_category_performance":
             return _ok(analytics_agent.get_category_performance(channel=ch))
@@ -671,6 +713,12 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
         if name == "get_performance_insights":
             return _ok(analytics_agent.get_performance_insights(channel=ch))
+
+        if name == "fetch_video_comments":
+            return _ok(analytics_agent.fetch_comments_for_sentiment(
+                video_url=arguments["video_url"],
+                max_results=arguments.get("max_results", 50),
+            ))
 
         return _err(f"Unknown tool: {name}")
 

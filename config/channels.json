@@ -5,7 +5,16 @@
       "display_name": "ContrasteYT",
       "sheet_id": "1iEFs6XR_HlLPRr634xNxJE7u_WmqsC9eQ9N7LY9ESQE",
       "sheet_tab": "Videos",
-      "drive_folder_id": "1KOmWJ2UIY2zT8dmBN7mRbICPwthAoShc"
+      "drive_folder_id": "1KOmWJ2UIY2zT8dmBN7mRbICPwthAoShc",
+      "youtube_channel_id": "UClXJJD3AVs0vLSV5JJRk1qg",
+      "token_file": "config/token_contra.json"
+    },
+    "buildship": {
+      "display_name": "Build & Ship",
+      "sheet_id": "1ij46X0m_mMMMz8lth1qOl-a-Xbq5rBiSLhcQ2nhxkps",
+      "sheet_tab": "Videos",
+      "drive_folder_id": "1HxJhZegpArfWtUr0yDW2VD8sEQUKTObR",
+      "token_file": "config/token_buildship.json"
     }
   }
 }

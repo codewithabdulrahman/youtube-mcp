@@ -1,7 +1,8 @@
 # Environment & secrets
 .env
 client_secret.json
-config/token.json
+client_secrets.json
+config/token*.json
 
 # Python
 __pycache__/

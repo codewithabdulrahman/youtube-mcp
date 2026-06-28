@@ -70,6 +70,27 @@ def get_series_candidates(channel: str = None) -> list[dict]:
     ]
 
 
+def _compute_performance_state(ctr: float, retention_rate: float, views: int) -> str:
+    # CTR not available from YouTube Analytics API per-video — fall back to views
+    if ctr == 0:
+        if views >= 50000:
+            return "Growing"
+        if views >= 5000:
+            return "Stable"
+        if views >= 500:
+            return "Declining"
+        return "Dead"
+    if views < 100 and ctr < 0.5:
+        return "Dead"
+    if ctr >= 4.0 or retention_rate >= 50:
+        return "Growing"
+    if ctr >= 2.0 or retention_rate >= 35:
+        return "Stable"
+    if ctr >= 0.5:
+        return "Declining"
+    return "Dead"
+
+
 def get_youtube_analytics(video_url: str, published_date: str = None) -> dict:
     """Fetch real-time metrics for a single video URL from YouTube APIs."""
     from services.youtube_service import get_full_metrics
@@ -82,17 +103,24 @@ def sync_all_published(channel: str = None) -> dict:
     Returns a summary of how many rows were synced and which failed.
     """
     from services.youtube_service import get_full_metrics
+    from services.channel_service import get_channel_config
+    from services.google_auth import get_credentials
+    from config.settings import BASE_DIR
     videos = sheets_service.list_videos(status="Published", limit=500, channel=channel)
+    cfg = get_channel_config(channel)
+    youtube_channel_id = cfg.get("youtube_channel_id") or None
+    token_file = cfg.get("token_file")
+    credentials = get_credentials(token_path=BASE_DIR / token_file if token_file else None)
 
     synced = 0
     failed = []
 
     for v in videos:
-        url = v.get("video_url", "").strip()
+        url = v.get("video_id", "").strip() or v.get("notes", "").strip()
         if not url:
             continue
 
-        metrics = get_full_metrics(url, published_date=v.get("publish_date") or None)
+        metrics = get_full_metrics(url, published_date=v.get("publish_date") or None, youtube_channel_id=youtube_channel_id, credentials=credentials)
 
         if "error" in metrics:
             failed.append({"row": v["row"], "topic": v["topic"], "reason": metrics["error"]})
@@ -100,10 +128,18 @@ def sync_all_published(channel: str = None) -> dict:
 
         update_fields = {k: metrics[k] for k in
                          ("views", "likes", "comments", "watch_time_mins", "ctr",
-                          "avg_view_duration_secs", "impressions")
+                          "avg_view_duration_secs", "impressions", "reach", "retention_rate")
                          if k in metrics}
 
         if update_fields:
+            try:
+                update_fields["performance_state"] = _compute_performance_state(
+                    ctr=float(update_fields.get("ctr", 0)),
+                    retention_rate=float(update_fields.get("retention_rate", 0)),
+                    views=int(update_fields.get("views", 0)),
+                )
+            except (ValueError, TypeError):
+                pass
             sheets_service.update_video(v["row"], channel=channel, **update_fields)
             synced += 1
         else:
@@ -177,4 +213,26 @@ def get_performance_insights(channel: str = None) -> dict:
         "top_performers_by_ctr": top3,
         "bottom_performers_by_ctr": bottom3,
         "by_category": category_summary,
+    }
+
+
+def fetch_comments_for_sentiment(video_url: str, max_results: int = 50) -> dict:
+    """
+    Fetch top comments for a video so Claude can assess overall sentiment.
+    After reviewing, call update_video(row, comment_sentiment=...) with:
+    'Mostly Positive', 'Mixed', or 'Mostly Negative'.
+    """
+    from services.youtube_service import extract_video_id, get_video_comments
+    video_id = extract_video_id(video_url)
+    if not video_id:
+        return {"error": f"Could not extract video ID from: {video_url}"}
+    comments = get_video_comments(video_id, max_results=max_results)
+    return {
+        "video_id": video_id,
+        "comment_count": len(comments),
+        "comments": comments,
+        "instruction": (
+            "Read these comments and call update_video with comment_sentiment set to one of: "
+            "'Mostly Positive', 'Mixed', or 'Mostly Negative'."
+        ),
     }

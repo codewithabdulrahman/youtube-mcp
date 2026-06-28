@@ -83,11 +83,12 @@ def add_channel(
     sheet_id: str,
     drive_folder_id: str,
     sheet_tab: str = "Videos",
+    youtube_channel_id: str = "",
 ) -> dict:
     """
     Register a new channel. sheet_id is the Google Spreadsheet ID.
     drive_folder_id is the root Drive folder for this channel's content.
-    sheet_tab is the tab name within the spreadsheet (default 'Videos').
+    youtube_channel_id is the YouTube channel ID (UCxxxxxxxx) — needed for Analytics API.
     """
     data = _load()
     slug = name.lower().replace(" ", "_")
@@ -98,6 +99,7 @@ def add_channel(
         "sheet_id": sheet_id,
         "sheet_tab": sheet_tab,
         "drive_folder_id": drive_folder_id,
+        "youtube_channel_id": youtube_channel_id,
     }
     _save(data)
     logger.info(f"Added channel '{slug}' ({display_name})")
@@ -109,7 +111,7 @@ def update_channel(name: str, **fields) -> dict:
     data = _load()
     if name not in data["channels"]:
         raise ValueError(f"Unknown channel '{name}'")
-    allowed = {"display_name", "sheet_id", "sheet_tab", "drive_folder_id"}
+    allowed = {"display_name", "sheet_id", "sheet_tab", "drive_folder_id", "youtube_channel_id", "token_file"}
     for k, v in fields.items():
         if k not in allowed:
             raise ValueError(f"Unknown field '{k}'. Allowed: {allowed}")

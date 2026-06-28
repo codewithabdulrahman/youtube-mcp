@@ -6,7 +6,11 @@
       "mcp__youtube-content__build_visual_context",
       "mcp__youtube-content__save_visuals_doc",
       "Bash(.venv/bin/python -c \"import googleapiclient; print\\('client', googleapiclient.__version__\\)\")",
-      "Bash(.venv/bin/python)"
+      "Bash(.venv/bin/python)",
+      "mcp__youtube-content__sync_youtube_stats",
+      "Bash(.venv/bin/python /private/tmp/claude-501/-Users-abdul-Desktop-projects-codebase-youtube-mcp/fad4f6a5-42d8-4ceb-ad3b-1e7b57fd97d4/scratchpad/match_and_sync.py)",
+      "Bash(.venv/bin/python /private/tmp/claude-501/-Users-abdul-Desktop-projects-codebase-youtube-mcp/fad4f6a5-42d8-4ceb-ad3b-1e7b57fd97d4/scratchpad/migrate_videoid.py)",
+      "mcp__youtube-content__list_channels"
     ]
   }
 }

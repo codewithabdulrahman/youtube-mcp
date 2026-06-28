@@ -42,30 +42,36 @@ SHEET_COLUMNS = {
     "category": 3,
     "status": 4,
     "priority": 5,
-    "research_score": 6,
-    "research_doc": 7,
+    "updated_at": 6,
+    "video_id": 7,
     "script_doc": 8,
-    "thumbnail": 9,
-    "publish_date": 10,
-    "created_at": 11,
-    "updated_at": 12,
-    "video_url": 13,
-    "notes": 14,
-    "views": 15,
+    "notes": 9,
+    "views": 10,
     # YouTube metrics — synced via sync_youtube_stats
-    "likes": 16,
-    "comments": 17,
-    "watch_time_mins": 18,
-    "ctr": 19,
-    "avg_view_duration_secs": 20,
-    "impressions": 21,
+    "likes": 11,
+    "comments": 12,
+    "watch_time_mins": 13,
+    "ctr": 14,
+    "avg_view_duration_secs": 15,
+    "impressions": 16,
+    "reach": 17,
+    "retention_rate": 18,
+    "performance_state": 19,
+    "comment_sentiment": 20,
+    # Less-frequently needed columns
+    "research_score": 21,
+    "research_doc": 22,
+    "thumbnail": 23,
+    "publish_date": 24,
+    "created_at": 25,
 }
 
 SHEET_HEADERS = [
     "ID", "Topic", "Category", "Status", "Priority",
-    "Research Score", "Research Doc", "Script Doc", "Thumbnail",
-    "Publish Date", "Created At", "Updated At", "Video URL", "Notes", "Views",
+    "Updated At", "Video ID", "Script Doc", "Notes", "Views",
     "Likes", "Comments", "Watch Time (mins)", "CTR (%)", "Avg View Duration (secs)", "Impressions",
+    "Reach (Unique Viewers)", "Retention Rate (%)", "Performance State", "Comment Sentiment",
+    "Research Score", "Research Doc", "Thumbnail", "Publish Date", "Created At",
 ]
 
 VALID_STATUSES = [
@@ -77,7 +83,6 @@ GOOGLE_SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/documents",
     "https://www.googleapis.com/auth/drive",
-    # Temporarily disabled — requires re-auth to mint a refresh token with these scopes.
-    # "https://www.googleapis.com/auth/youtube.readonly",
-    # "https://www.googleapis.com/auth/yt-analytics.readonly",
+    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/yt-analytics.readonly",
 ]

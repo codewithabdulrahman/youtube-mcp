@@ -30,12 +30,19 @@ def cli(ctx, verbose):
 
 @cli.command()
 @click.argument("client_secrets_file")
-def auth(client_secrets_file):
+@click.option("--channel", "-c", default=None, help="Channel slug to save token for (e.g. contra, buildship). Saves to config/token_<channel>.json.")
+def auth(client_secrets_file, channel):
     """Run the one-time Google OAuth2 authorization flow."""
     from services.google_auth import run_auth_flow
-    creds = run_auth_flow(client_secrets_file)
-    console.print(f"[green]Auth complete![/green] Refresh token saved.")
-    console.print(f"Add to .env: GOOGLE_REFRESH_TOKEN={creds.refresh_token}")
+    from config.settings import TOKEN_PATH
+    token_path = TOKEN_PATH.parent / f"token_{channel}.json" if channel else None
+    creds = run_auth_flow(client_secrets_file, token_path=token_path)
+    if channel:
+        console.print(f"[green]Auth complete![/green] Token saved for channel '{channel}' → {token_path}")
+        console.print(f"\nRegister it: update_channel(name='{channel}', token_file='config/token_{channel}.json')")
+    else:
+        console.print(f"[green]Auth complete![/green] Default token saved.")
+    console.print(f"Refresh token: {creds.refresh_token}")
 
 
 # ─── Setup ─────────────────────────────────────────────────────────────────────

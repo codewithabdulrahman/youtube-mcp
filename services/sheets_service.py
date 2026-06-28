@@ -92,7 +92,7 @@ def _row_to_dict(row: list, row_number: int) -> dict:
         "publish_date": safe_get(SHEET_COLUMNS["publish_date"]),
         "created_at": safe_get(SHEET_COLUMNS["created_at"]),
         "updated_at": safe_get(SHEET_COLUMNS["updated_at"]),
-        "video_url": safe_get(SHEET_COLUMNS["video_url"]),
+        "video_id": safe_get(SHEET_COLUMNS["video_id"]),
         "notes": safe_get(SHEET_COLUMNS["notes"]),
         "views": safe_get(SHEET_COLUMNS["views"]),
         "likes": safe_get(SHEET_COLUMNS["likes"]),
@@ -101,6 +101,10 @@ def _row_to_dict(row: list, row_number: int) -> dict:
         "ctr": safe_get(SHEET_COLUMNS["ctr"]),
         "avg_view_duration_secs": safe_get(SHEET_COLUMNS["avg_view_duration_secs"]),
         "impressions": safe_get(SHEET_COLUMNS["impressions"]),
+        "reach": safe_get(SHEET_COLUMNS["reach"]),
+        "retention_rate": safe_get(SHEET_COLUMNS["retention_rate"]),
+        "performance_state": safe_get(SHEET_COLUMNS["performance_state"]),
+        "comment_sentiment": safe_get(SHEET_COLUMNS["comment_sentiment"]),
     }
 
 
@@ -314,6 +318,66 @@ def get_stats(channel: str = None) -> dict:
             1 for v in videos if v["status"] == status
         )
     return stats
+
+
+def sync_column_order(channel: str = None) -> dict:
+    """Reorder sheet columns to match SHEET_HEADERS, preserving all data."""
+    sheet_id, tab_name = _resolve(channel)
+    service = _get_service()
+
+    old_last_col = _col_letter(len(SHEET_HEADERS) + 10)
+    result = service.spreadsheets().values().get(
+        spreadsheetId=sheet_id,
+        range=f"{tab_name}!A1:{old_last_col}2000",
+    ).execute()
+    all_rows = result.get("values", [])
+
+    if not all_rows:
+        return {"status": "empty", "message": "Sheet is empty, nothing to reorder"}
+
+    old_headers = all_rows[0]
+    new_headers = SHEET_HEADERS
+
+    # Map each old column index → new column index
+    old_to_new = {}
+    for old_idx, header in enumerate(old_headers):
+        try:
+            new_idx = new_headers.index(header)
+            old_to_new[old_idx] = new_idx
+        except ValueError:
+            logger.warning(f"Unmapped header '{header}' (column {old_idx + 1}) — data will be dropped")
+
+    new_rows = [list(new_headers)]
+    for row in all_rows[1:]:
+        if not row or not row[0]:
+            continue
+        new_row = [""] * len(new_headers)
+        for old_idx, value in enumerate(row):
+            if old_idx in old_to_new:
+                new_row[old_to_new[old_idx]] = value
+        new_rows.append(new_row)
+
+    # Clear existing data then write reordered rows
+    clear_range = f"{tab_name}!A1:{old_last_col}{len(all_rows) + 1}"
+    service.spreadsheets().values().clear(
+        spreadsheetId=sheet_id,
+        range=clear_range,
+    ).execute()
+
+    service.spreadsheets().values().update(
+        spreadsheetId=sheet_id,
+        range=f"{tab_name}!A1",
+        valueInputOption="RAW",
+        body={"values": new_rows},
+    ).execute()
+
+    logger.info(f"Synced column order: {len(new_rows) - 1} data rows rewritten (channel={channel or 'active'})")
+    return {
+        "status": "ok",
+        "rows_migrated": len(new_rows) - 1,
+        "columns": len(new_headers),
+        "unmapped": [h for i, h in enumerate(old_headers) if i not in old_to_new],
+    }
 
 
 def apply_status_colors(channel: str = None) -> dict:
