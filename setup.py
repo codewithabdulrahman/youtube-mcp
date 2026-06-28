@@ -1,0 +1,28 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="youtube-mcp",
+    version="1.0.0",
+    packages=find_packages(),
+    install_requires=[
+        "google-auth>=2.29.0",
+        "google-auth-oauthlib>=1.2.0",
+        "google-auth-httplib2>=0.2.0",
+        "google-api-python-client>=2.127.0",
+        "mcp>=1.0.0",
+        "click>=8.1.7",
+        "python-dotenv>=1.0.1",
+        "requests>=2.31.0",
+        "beautifulsoup4>=4.12.3",
+        "httpx>=0.27.0",
+        "rich>=13.7.1",
+        "thefuzz>=0.22.1",
+        "python-Levenshtein>=0.25.1",
+        "structlog>=24.1.0",
+    ],
+    entry_points={
+        "console_scripts": [
+            "content=commands.cli:cli",
+        ],
+    },
+)

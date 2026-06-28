@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "youtube-content": {
+      "command": "python",
+      "args": ["-m", "mcpserver.server"],
+      "cwd": "/Users/abdul/youtube-mcp",
+      "env": {
+        "PYTHONPATH": "/Users/abdul/youtube-mcp"
+      }
+    }
+  }
+}
