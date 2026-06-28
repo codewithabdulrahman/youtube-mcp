@@ -11,6 +11,18 @@ logger = get_logger("sheets_service")
 
 DUPLICATE_THRESHOLD = 75
 
+STATUS_COLORS = {
+    "Idea":              {"red": 0.91, "green": 0.91, "blue": 0.91},  # light gray
+    "Researching":       {"red": 0.80, "green": 0.90, "blue": 1.00},  # light blue
+    "Research Complete": {"red": 0.70, "green": 0.88, "blue": 0.86},  # teal
+    "Script Writing":    {"red": 1.00, "green": 0.88, "blue": 0.70},  # light orange
+    "Script Complete":   {"red": 0.86, "green": 0.93, "blue": 0.78},  # light green
+    "Thumbnail Ready":   {"red": 0.88, "green": 0.75, "blue": 0.91},  # light purple
+    "Scheduled":         {"red": 1.00, "green": 0.98, "blue": 0.77},  # light yellow
+    "Published":         {"red": 0.78, "green": 0.90, "blue": 0.79},  # green
+    "Archived":          {"red": 0.81, "green": 0.85, "blue": 0.86},  # blue-gray
+}
+
 
 def _get_service():
     return build("sheets", "v4", credentials=get_credentials())
@@ -29,6 +41,37 @@ def _col_letter(n: int) -> str:
         n, r = divmod(n - 1, 26)
         result = chr(65 + r) + result
     return result
+
+
+def _get_tab_id(service, sheet_id: str, tab_name: str) -> int:
+    meta = service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+    for s in meta["sheets"]:
+        if s["properties"]["title"] == tab_name:
+            return s["properties"]["sheetId"]
+    raise ValueError(f"Tab '{tab_name}' not found in sheet {sheet_id}")
+
+
+def _color_status_cell(service, sheet_id: str, tab_id: int, row: int, status: str):
+    color = STATUS_COLORS.get(status)
+    if not color:
+        return
+    col = SHEET_COLUMNS["status"] - 1  # 0-indexed
+    service.spreadsheets().batchUpdate(
+        spreadsheetId=sheet_id,
+        body={"requests": [{
+            "repeatCell": {
+                "range": {
+                    "sheetId": tab_id,
+                    "startRowIndex": row - 1,
+                    "endRowIndex": row,
+                    "startColumnIndex": col,
+                    "endColumnIndex": col + 1,
+                },
+                "cell": {"userEnteredFormat": {"backgroundColor": color}},
+                "fields": "userEnteredFormat.backgroundColor",
+            }
+        }]},
+    ).execute()
 
 
 def _row_to_dict(row: list, row_number: int) -> dict:
@@ -123,7 +166,7 @@ def get_video(row: int = None, video_id: str = None, channel: str = None) -> dic
         service = _get_service()
         result = service.spreadsheets().values().get(
             spreadsheetId=sheet_id,
-            range=f"{tab_name}!A{row}:N{row}",
+            range=f"{tab_name}!A{row}:O{row}",
         ).execute()
         rows = result.get("values", [])
         if rows:
@@ -158,7 +201,7 @@ def add_video(topic: str, category: str = "", priority: str = "Medium", notes: s
 
     result = service.spreadsheets().values().append(
         spreadsheetId=sheet_id,
-        range=f"{tab_name}!A:N",
+        range=f"{tab_name}!A:O",
         valueInputOption="RAW",
         insertDataOption="INSERT_ROWS",
         body={"values": [row_data]},
@@ -169,6 +212,12 @@ def add_video(topic: str, category: str = "", priority: str = "Medium", notes: s
         row_num = int(updated_range.split("!")[1].split(":")[0][1:])
     except Exception:
         row_num = len(all_videos) + 2
+
+    try:
+        tab_id = _get_tab_id(service, sheet_id, tab_name)
+        _color_status_cell(service, sheet_id, tab_id, row_num, "Idea")
+    except Exception as e:
+        logger.warning(f"Could not apply status color: {e}")
 
     logger.info(f"Added video '{topic}' as {next_id} at row {row_num} (channel={channel or 'active'})")
     return {"row": row_num, "id": next_id, "topic": topic, "status": "Idea"}
@@ -200,6 +249,14 @@ def update_video(row: int, channel: str = None, **fields) -> bool:
         spreadsheetId=sheet_id,
         body={"valueInputOption": "RAW", "data": updates},
     ).execute()
+
+    if "status" in fields:
+        try:
+            tab_id = _get_tab_id(service, sheet_id, tab_name)
+            _color_status_cell(service, sheet_id, tab_id, row, fields["status"])
+        except Exception as e:
+            logger.warning(f"Could not apply status color: {e}")
+
     logger.info(f"Updated row {row}: {list(fields.keys())} (channel={channel or 'active'})")
     return True
 
@@ -247,3 +304,40 @@ def get_stats(channel: str = None) -> dict:
             1 for v in videos if v["status"] == status
         )
     return stats
+
+
+def apply_status_colors(channel: str = None) -> dict:
+    """Apply background colors to all status cells in the sheet."""
+    sheet_id, tab_name = _resolve(channel)
+    service = _get_service()
+    tab_id = _get_tab_id(service, sheet_id, tab_name)
+    videos = list_videos(limit=1000, channel=channel)
+
+    col = SHEET_COLUMNS["status"] - 1  # 0-indexed
+    requests = []
+    for v in videos:
+        color = STATUS_COLORS.get(v["status"])
+        if not color:
+            continue
+        requests.append({
+            "repeatCell": {
+                "range": {
+                    "sheetId": tab_id,
+                    "startRowIndex": v["row"] - 1,
+                    "endRowIndex": v["row"],
+                    "startColumnIndex": col,
+                    "endColumnIndex": col + 1,
+                },
+                "cell": {"userEnteredFormat": {"backgroundColor": color}},
+                "fields": "userEnteredFormat.backgroundColor",
+            }
+        })
+
+    if requests:
+        service.spreadsheets().batchUpdate(
+            spreadsheetId=sheet_id,
+            body={"requests": requests},
+        ).execute()
+
+    logger.info(f"Applied status colors to {len(requests)} rows (channel={channel or 'active'})")
+    return {"colored": len(requests), "total": len(videos)}

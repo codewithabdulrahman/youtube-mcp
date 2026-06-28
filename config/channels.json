@@ -1,8 +1,8 @@
 {
-  "active": "default",
+  "active": "contra",
   "channels": {
-    "default": {
-      "display_name": "Default Channel",
+    "contra": {
+      "display_name": "ContrasteYT",
       "sheet_id": "1iEFs6XR_HlLPRr634xNxJE7u_WmqsC9eQ9N7LY9ESQE",
       "sheet_tab": "Videos",
       "drive_folder_id": "1KOmWJ2UIY2zT8dmBN7mRbICPwthAoShc"

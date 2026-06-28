@@ -170,6 +170,7 @@ async def list_tools() -> list[types.Tool]:
                     "publish_date": {"type": "string"},
                     "video_url": {"type": "string"},
                     "notes": {"type": "string"},
+                    "views": {"type": "string"},
                     **_CHANNEL_PARAM,
                 },
                 "required": ["row"],
@@ -218,6 +219,14 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="get_stats",
             description="Get video counts by status.",
+            inputSchema={
+                "type": "object",
+                "properties": {**_CHANNEL_PARAM},
+            },
+        ),
+        types.Tool(
+            name="apply_status_colors",
+            description="Apply background colors to all status cells in the sheet. Run this once to color-code existing rows; new rows are colored automatically going forward.",
             inputSchema={
                 "type": "object",
                 "properties": {**_CHANNEL_PARAM},
@@ -513,6 +522,9 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
         if name == "get_stats":
             return _ok(sheets_service.get_stats(channel=ch))
+
+        if name == "apply_status_colors":
+            return _ok(sheets_service.apply_status_colors(channel=ch))
 
         # Research tools (no channel — research is channel-agnostic)
         if name == "web_search":

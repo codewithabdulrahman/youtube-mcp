@@ -25,17 +25,48 @@ claude mcp add youtube-content /Users/abdul/youtube-mcp/.venv/bin/python -- -m m
 
 Each channel has its own Google Spreadsheet and Drive folder. A `config/channels.json` file tracks all channels and which one is active. All content tools accept an optional `channel` param — if omitted, the active channel is used.
 
-### Adding a second channel
-1. Call `add_channel(name="real_estate", display_name="Real Estate Channel", sheet_id="...", drive_folder_id="...")`
-2. Call `ensure_setup(channel="real_estate")` to create the tab + Drive folders
-3. Call `set_active_channel("real_estate")` to switch, or pass `channel="real_estate"` per tool call
+### Adding a new channel (full setup)
+
+**Step 1 — Register the channel**
+```
+add_channel(name="contra", display_name="ContrasteYT", sheet_id="...", drive_folder_id="...")
+```
+
+**Step 2 — Initialize sheet + Drive folders**
+```
+ensure_setup(channel="contra")
+```
+
+**Step 3 — Create the channel's prompt folder**
+
+Every channel must have its own prompt folder — there is no global fallback:
+```
+prompts/
+  contra/
+    research.md
+    script.md
+    visuals.md
+    thumbnail.md
+    title.md
+    description.md
+```
+
+The easiest way is to copy an existing channel's folder as a starting point and then edit the files:
+```bash
+cp -r prompts/contra prompts/<new_channel>
+```
+
+**Step 4 — (Optional) Switch to this channel as the default**
+```
+set_active_channel("contra")
+```
 
 ### Listing channels
 - Call `list_channels()` — shows all channels and which is active
 
 ### Cross-channel example
 - `get_stats()` → stats for active channel
-- `get_stats(channel="finance")` → stats for a specific channel
+- `get_stats(channel="contra")` → stats for a specific channel
 
 ## Workflow Patterns
 
@@ -109,14 +140,27 @@ Each channel has its own Google Spreadsheet and Drive folder. A `config/channels
 
 ## Prompt Templates
 
-All prompts are in `prompts/` as Markdown files. Edit them without changing any code.
+Every channel has its own prompt folder at `prompts/<channel>/`. There is no global fallback — if the folder or file is missing, an error is raised.
 
+Each channel folder contains:
 - `research.md` — Research document structure and guidelines
 - `script.md` — Script framework and writing style
 - `visuals.md` — Scene-by-scene visual direction format
 - `thumbnail.md` — Thumbnail concept generation
 - `title.md` — Title generation with SEO guidance
 - `description.md` — YouTube description writing
+
+Edit the files in the relevant channel folder without changing any code.
+
+To see which prompts exist for a channel:
+```
+list_prompts(channel="contra")
+```
+
+When adding a new channel, copy an existing folder as a starting point:
+```bash
+cp -r prompts/contra prompts/<new_channel>
+```
 
 ## Google Sheet Structure
 
